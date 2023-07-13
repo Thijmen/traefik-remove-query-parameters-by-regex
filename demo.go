@@ -1,4 +1,4 @@
-// traefik_remove_query_parameters_by_regex package.
+// Package traefik_remove_query_parameters_by_regex.
 package traefik_remove_query_parameters_by_regex
 
 import (
@@ -55,7 +55,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		}
 	}
 
-	var allowedValuesRegexCompiled *regexp.Regexp = nil
+	var allowedValuesRegexCompiled *regexp.Regexp
 	if config.AllowedValuesRegex != "" {
 		var err error
 		allowedValuesRegexCompiled, err = regexp.Compile(config.AllowedValuesRegex)
