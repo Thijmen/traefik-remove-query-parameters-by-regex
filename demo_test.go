@@ -17,7 +17,7 @@ func TestDeleteQueryParam(t *testing.T) {
 	expected := ""
 	previous := "aa=1&bb=true"
 
-	assertQueryModification(t, cfg, previous, expected, "/")
+	assertQueryModificationHelper(t, cfg, previous, expected, "/")
 }
 
 func TestDeleteQueryParamAndAllowIsNotRemoved(t *testing.T) {
@@ -27,7 +27,7 @@ func TestDeleteQueryParamAndAllowIsNotRemoved(t *testing.T) {
 	expected := "testing=1"
 	previous := "aa=1&bb=true&testing=1"
 
-	assertQueryModification(t, cfg, previous, expected, "/")
+	assertQueryModificationHelper(t, cfg, previous, expected, "/")
 }
 
 func TestDeleteQueryParamDoesntWorkOnProperDomain(t *testing.T) {
@@ -38,7 +38,7 @@ func TestDeleteQueryParamDoesntWorkOnProperDomain(t *testing.T) {
 	expected := "aa=1&bb=true&testing=1"
 	previous := "aa=1&bb=true&testing=1"
 
-	assertQueryModification(t, cfg, previous, expected, "qontrol")
+	assertQueryModificationHelper(t, cfg, previous, expected, "qontrol")
 }
 
 func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
@@ -49,7 +49,7 @@ func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
 	expected := "aa=1&bb=true&testing=1"
 	previous := "aa=1&bb=true&testing=1"
 
-	assertQueryModification(t, cfg, previous, expected, "/qontrol/test/1")
+	assertQueryModificationHelper(t, cfg, previous, expected, "/qontrol/test/1")
 }
 
 func TestErrorInvalidType(t *testing.T) {
@@ -88,7 +88,8 @@ func createReqAndRecorder(cfg *traefikremovequeryparametersbyregex.Config) (http
 	return handler, recorder, req, err
 }
 
-func assertQueryModification(t *testing.T, cfg *traefikremovequeryparametersbyregex.Config, previous, expected, uriPath string) {
+func assertQueryModificationHelper(t *testing.T, cfg *traefikremovequeryparametersbyregex.Config, previous, expected, uriPath string) {
+	t.Helper()
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
 		t.Fatal(err)
