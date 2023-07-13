@@ -33,7 +33,7 @@ func TestDeleteQueryParamDoesntWorkOnProperDomain(t *testing.T) {
 	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "deleteexcept"
 	cfg.AllowedValuesRegex = "(testing|debugging)"
-	cfg.ExceptUriRegex = "(qontrol)"
+	cfg.ExceptURIRegex = "(qontrol)"
 	expected := "aa=1&bb=true&testing=1"
 	previous := "aa=1&bb=true&testing=1"
 
@@ -44,7 +44,7 @@ func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
 	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "deleteexcept"
 	cfg.AllowedValuesRegex = "(testing|debugging)"
-	cfg.ExceptUriRegex = "(qontrol)"
+	cfg.ExceptURIRegex = "(qontrol)"
 	expected := "aa=1&bb=true&testing=1"
 	previous := "aa=1&bb=true&testing=1"
 
@@ -90,7 +90,7 @@ func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) 
 }
 
 func assertQueryModification(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expected string, uriPath string) {
-	handler, err, recorder, req := createReqAndRecorder(cfg)
+	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
 		t.Fatal(err)
 		return
