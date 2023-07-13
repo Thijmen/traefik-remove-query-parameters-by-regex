@@ -2,7 +2,6 @@
 package traefikremovequeryparametersbyregex
 
 import (
-	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -37,7 +36,7 @@ type QueryParameterRemover struct {
 }
 
 // New creates a new instance of this plugin.
-func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+func New(next http.Handler, config *Config, name string) (http.Handler, error) {
 	if !config.Type.isValid() {
 		return nil, errors.New("invalid modification type, expected deleteexcept")
 	}
@@ -91,14 +90,13 @@ func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 
 		regex := regexp.MustCompile(q.config.AllowedValuesRegex)
 
-		for param, _ := range req.URL.Query() {
+		for param := range req.URL.Query() {
 			if !regex.MatchString(param) {
 				qry.Del(param)
 				req.URL.RawQuery = qry.Encode()
 				log.Printf("Removed parameter: %s \n", param)
 			}
 		}
-
 	}
 
 	req.URL.RawQuery = qry.Encode()

@@ -2,10 +2,11 @@ package traefikremovequeryparametersbyregex_test
 
 import (
 	"context"
-	traefikremovequeryparametersbyregex "github.com/Thijmen/traefik-remove-query-parameters-by-regex"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	traefikremovequeryparametersbyregex "github.com/Thijmen/traefik-remove-query-parameters-by-regex"
 )
 
 // region Delete
@@ -54,9 +55,8 @@ func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
 func TestErrorInvalidType(t *testing.T) {
 	cfg := traefikremovequeryparametersbyregex.CreateConfig()
 	cfg.Type = "bla"
-	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	_, err := traefikremovequeryparametersbyregex.New(ctx, next, cfg, "query-params-remover-plugin")
+	_, err := traefikremovequeryparametersbyregex.New(next, cfg, "query-params-remover-plugin")
 
 	if err == nil {
 		t.Error("expected error but err is nil")
@@ -66,9 +66,8 @@ func TestErrorInvalidType(t *testing.T) {
 func TestErrorNoParam(t *testing.T) {
 	cfg := traefikremovequeryparametersbyregex.CreateConfig()
 	cfg.Type = "delete"
-	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	_, err := traefikremovequeryparametersbyregex.New(ctx, next, cfg, "query-modification-plugin")
+	_, err := traefikremovequeryparametersbyregex.New(next, cfg, "query-modification-plugin")
 
 	if err == nil {
 		t.Error("expected error but err is nil")
@@ -78,7 +77,7 @@ func TestErrorNoParam(t *testing.T) {
 func createReqAndRecorder(cfg *traefikremovequeryparametersbyregex.Config) (http.Handler, *httptest.ResponseRecorder, *http.Request, error) {
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	handler, err := traefikremovequeryparametersbyregex.New(ctx, next, cfg, "query-modification-plugin")
+	handler, err := traefikremovequeryparametersbyregex.New(next, cfg, "query-modification-plugin")
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -89,7 +88,7 @@ func createReqAndRecorder(cfg *traefikremovequeryparametersbyregex.Config) (http
 	return handler, recorder, req, err
 }
 
-func assertQueryModification(t *testing.T, cfg *traefikremovequeryparametersbyregex.Config, previous, expected string, uriPath string) {
+func assertQueryModification(t *testing.T, cfg *traefikremovequeryparametersbyregex.Config, previous, expected, uriPath string) {
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
 		t.Fatal(err)
