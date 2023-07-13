@@ -1,3 +1,4 @@
+// traefik_remove_query_parameters_by_regex package.
 package traefik_remove_query_parameters_by_regex
 
 import (
@@ -45,7 +46,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		return nil, errors.New("either AllowedValuesRegex or ExceptURIRegex must be set")
 	}
 
-	var exceptURIRegexCompiled *regexp.Regexp = nil
+	var exceptURIRegexCompiled *regexp.Regexp
 	if config.ExceptURIRegex != "" {
 		var err error
 		exceptURIRegexCompiled, err = regexp.Compile(config.ExceptURIRegex)
@@ -97,7 +98,7 @@ func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 				log.Printf("Removed parameter: %s \n", param)
 			}
 		}
-		
+
 	}
 
 	req.URL.RawQuery = qry.Encode()
