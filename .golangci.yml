@@ -73,3 +73,5 @@ issues:
         - goconst
         - funlen
         - godot
+        - goimports
+        - depguard
