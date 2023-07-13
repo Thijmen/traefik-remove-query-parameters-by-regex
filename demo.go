@@ -1,5 +1,5 @@
-// Package traefikRemoveQueryParametersByRegex by Thijmen Stavenuiter.
-package traefikRemoveQueryParametersByRegex
+// Package traefikremovequeryparametersbyregex by Thijmen Stavenuiter.
+package traefikremovequeryparametersbyregex
 
 import (
 	"context"
