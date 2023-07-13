@@ -14,19 +14,19 @@ const (
 	deleteExceptType modificationType = "deleteexcept"
 )
 
-// Config is the configuration for this plugin
+// Config is the configuration for this plugin.
 type Config struct {
 	Type               modificationType `json:"type"`
 	AllowedValuesRegex string           `json:"allowedValuesRegex"`
-	ExceptUriRegex     string           `json:"exceptUriRegex"`
+	ExceptURIRegex     string           `json:"exceptUriRegex"`
 }
 
-// CreateConfig creates a new configuration for this plugin
+// CreateConfig creates a new configuration for this plugin.
 func CreateConfig() *Config {
 	return &Config{}
 }
 
-// QueryParameterRemover represents the basic properties of this plugin
+// QueryParameterRemover represents the basic properties of this plugin.
 type QueryParameterRemover struct {
 	next                       http.Handler
 	name                       string
@@ -35,20 +35,20 @@ type QueryParameterRemover struct {
 	allowedValuesRegexCompiled *regexp.Regexp
 }
 
-// New creates a new instance of this plugin
+// New creates a new instance of this plugin.
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	if !config.Type.isValid() {
 		return nil, errors.New("invalid modification type, expected deleteexcept")
 	}
 
-	if config.AllowedValuesRegex == "" && config.ExceptUriRegex == "" {
-		return nil, errors.New("either AllowedValuesRegex or ExceptUriRegex must be set")
+	if config.AllowedValuesRegex == "" && config.ExceptURIRegex == "" {
+		return nil, errors.New("either AllowedValuesRegex or ExceptURIRegex must be set")
 	}
 
-	var exceptUriRegexCompiled *regexp.Regexp = nil
-	if config.ExceptUriRegex != "" {
+	var exceptURIRegexCompiled *regexp.Regexp = nil
+	if config.ExceptURIRegex != "" {
 		var err error
-		exceptUriRegexCompiled, err = regexp.Compile(config.ExceptUriRegex)
+		exceptURIRegexCompiled, err = regexp.Compile(config.ExceptURIRegex)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +98,6 @@ func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 			}
 		}
 		
-		break
 	}
 
 	req.URL.RawQuery = qry.Encode()

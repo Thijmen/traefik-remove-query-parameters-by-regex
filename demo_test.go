@@ -86,7 +86,7 @@ func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) 
 	recorder := httptest.NewRecorder()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
-	return handler, err, recorder, req
+	return handler, recorder, req, err
 }
 
 func assertQueryModification(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expected string, uriPath string) {
