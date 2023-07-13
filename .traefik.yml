@@ -7,6 +7,6 @@ import: github.com/Thijmen/traefik-remove-query-parameters-by-regex
 summary: 'Allows usage of regex to remove query parameters to service'
 
 testData:
-  Headers:
-    X-Demo: test
-    X-URL: '{{URL}}'
+  allowedValuesRegex: "(allowed|another_allowed)"
+  exceptUriRegex: "(admin)"
+  type: "deleteexcept"
