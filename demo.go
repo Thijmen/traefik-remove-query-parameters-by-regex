@@ -78,7 +78,7 @@ func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 	switch q.config.Type {
 	case deleteExceptType:
 
-		if q.config.ExceptUriRegex != "" {
+		if q.config.ExceptURIRegex != "" {
 			regexAllowed := q.exceptURIRegexCompiled
 
 			isExceptMatch := regexAllowed.MatchString(req.URL.String())

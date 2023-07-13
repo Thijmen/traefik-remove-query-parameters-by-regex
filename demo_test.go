@@ -75,12 +75,12 @@ func TestErrorNoParam(t *testing.T) {
 	}
 }
 
-func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) (http.Handler, error, *httptest.ResponseRecorder, *http.Request) {
+func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) (http.Handler, *httptest.ResponseRecorder, *http.Request, error) {
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 	handler, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-modification-plugin")
 	if err != nil {
-		return nil, err, nil, nil
+		return nil, nil, nil, err
 	}
 
 	recorder := httptest.NewRecorder()
