@@ -1,66 +1,117 @@
-// Package plugindemo a demo plugin.
-package plugindemo
+package traefik_remove_query_parameters_by_regex
 
 import (
-	"bytes"
 	"context"
-	"fmt"
+	"errors"
+	"log"
 	"net/http"
-	"text/template"
+	"regexp"
 )
 
-// Config the plugin configuration.
+type modificationType string
+
+const (
+	deleteExceptType modificationType = "deleteexcept"
+)
+
+// Config is the configuration for this plugin
 type Config struct {
-	Headers map[string]string `json:"headers,omitempty"`
+	Type               modificationType `json:"type"`
+	AllowedValuesRegex string           `json:"allowedValuesRegex"`
+	ExceptUriRegex     string           `json:"exceptUriRegex"`
 }
 
-// CreateConfig creates the default plugin configuration.
+// CreateConfig creates a new configuration for this plugin
 func CreateConfig() *Config {
-	return &Config{
-		Headers: make(map[string]string),
-	}
+	return &Config{}
 }
 
-// Demo a Demo plugin.
-type Demo struct {
-	next     http.Handler
-	headers  map[string]string
-	name     string
-	template *template.Template
+// QueryParameterRemover represents the basic properties of this plugin
+type QueryParameterRemover struct {
+	next                       http.Handler
+	name                       string
+	config                     *Config
+	exceptUriRegexCompiled     *regexp.Regexp
+	allowedValuesRegexCompiled *regexp.Regexp
 }
 
-// New created a new Demo plugin.
+// New creates a new instance of this plugin
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
-	if len(config.Headers) == 0 {
-		return nil, fmt.Errorf("headers cannot be empty")
+	if !config.Type.isValid() {
+		return nil, errors.New("invalid modification type, expected deleteexcept")
 	}
 
-	return &Demo{
-		headers:  config.Headers,
-		next:     next,
-		name:     name,
-		template: template.New("demo").Delims("[[", "]]"),
+	if config.AllowedValuesRegex == "" && config.ExceptUriRegex == "" {
+		return nil, errors.New("either AllowedValuesRegex or ExceptUriRegex must be set")
+	}
+
+	var exceptUriRegexCompiled *regexp.Regexp = nil
+	if config.ExceptUriRegex != "" {
+		var err error
+		exceptUriRegexCompiled, err = regexp.Compile(config.ExceptUriRegex)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var allowedValuesRegexCompiled *regexp.Regexp = nil
+	if config.AllowedValuesRegex != "" {
+		var err error
+		allowedValuesRegexCompiled, err = regexp.Compile(config.AllowedValuesRegex)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &QueryParameterRemover{
+		next:                       next,
+		name:                       name,
+		config:                     config,
+		exceptUriRegexCompiled:     exceptUriRegexCompiled,
+		allowedValuesRegexCompiled: allowedValuesRegexCompiled,
 	}, nil
 }
 
-func (a *Demo) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	for key, value := range a.headers {
-		tmpl, err := a.template.Parse(value)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-			return
+func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	qry := req.URL.Query()
+
+	switch q.config.Type {
+	case deleteExceptType:
+
+		if q.config.ExceptUriRegex != "" {
+			regexAllowed := q.exceptUriRegexCompiled
+
+			isExceptMatch := regexAllowed.MatchString(req.URL.String())
+
+			if isExceptMatch {
+				break
+			}
 		}
 
-		writer := &bytes.Buffer{}
+		regex := regexp.MustCompile(q.config.AllowedValuesRegex)
 
-		err = tmpl.Execute(writer, req)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-			return
+		for param, _ := range req.URL.Query() {
+			if !regex.MatchString(param) {
+				qry.Del(param)
+				req.URL.RawQuery = qry.Encode()
+				log.Printf("Removed parameter: %s \n", param)
+			}
 		}
-
-		req.Header.Set(key, writer.String())
+		
+		break
 	}
 
-	a.next.ServeHTTP(rw, req)
+	req.URL.RawQuery = qry.Encode()
+	req.RequestURI = req.URL.RequestURI()
+
+	q.next.ServeHTTP(rw, req)
+}
+
+func (mt modificationType) isValid() bool {
+	switch mt {
+	case deleteExceptType, "":
+		return true
+	}
+
+	return false
 }

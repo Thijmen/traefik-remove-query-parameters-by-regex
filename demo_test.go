@@ -1,49 +1,105 @@
-package plugindemo_test
+package traefik_remove_query_parameters_by_regex_test
 
 import (
 	"context"
+	traefik_remove_query_parameters_by_regex "github.com/Thijmen/traefik-remove-query-parameters-by-regex"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"github.com/traefik/plugindemo"
 )
 
-func TestDemo(t *testing.T) {
-	cfg := plugindemo.CreateConfig()
-	cfg.Headers["X-Host"] = "[[.Host]]"
-	cfg.Headers["X-Method"] = "[[.Method]]"
-	cfg.Headers["X-URL"] = "[[.URL]]"
-	cfg.Headers["X-URL"] = "[[.URL]]"
-	cfg.Headers["X-Demo"] = "test"
+// region Delete
+func TestDeleteQueryParam(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "deleteexcept"
+	cfg.AllowedValuesRegex = "(testing|debugging)"
+	expected := ""
+	previous := "aa=1&bb=true"
 
+	assertQueryModification(t, cfg, previous, expected, "/")
+}
+
+func TestDeleteQueryParamAndAllowIsNotRemoved(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "deleteexcept"
+	cfg.AllowedValuesRegex = "(testing|debugging)"
+	expected := "testing=1"
+	previous := "aa=1&bb=true&testing=1"
+
+	assertQueryModification(t, cfg, previous, expected, "/")
+}
+
+func TestDeleteQueryParamDoesntWorkOnProperDomain(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "deleteexcept"
+	cfg.AllowedValuesRegex = "(testing|debugging)"
+	cfg.ExceptUriRegex = "(qontrol)"
+	expected := "aa=1&bb=true&testing=1"
+	previous := "aa=1&bb=true&testing=1"
+
+	assertQueryModification(t, cfg, previous, expected, "qontrol")
+}
+
+func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "deleteexcept"
+	cfg.AllowedValuesRegex = "(testing|debugging)"
+	cfg.ExceptUriRegex = "(qontrol)"
+	expected := "aa=1&bb=true&testing=1"
+	previous := "aa=1&bb=true&testing=1"
+
+	assertQueryModification(t, cfg, previous, expected, "/qontrol/test/1")
+}
+
+func TestErrorInvalidType(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "bla"
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-params-remover-plugin")
 
-	handler, err := plugindemo.New(ctx, next, cfg, "demo-plugin")
+	if err == nil {
+		t.Error("expected error but err is nil")
+	}
+}
+
+func TestErrorNoParam(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "delete"
+	ctx := context.Background()
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-modification-plugin")
+
+	if err == nil {
+		t.Error("expected error but err is nil")
+	}
+}
+
+func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) (http.Handler, error, *httptest.ResponseRecorder, *http.Request) {
+	ctx := context.Background()
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	handler, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-modification-plugin")
 	if err != nil {
-		t.Fatal(err)
+		return nil, err, nil, nil
 	}
 
 	recorder := httptest.NewRecorder()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	handler.ServeHTTP(recorder, req)
-
-	assertHeader(t, req, "X-Host", "localhost")
-	assertHeader(t, req, "X-URL", "http://localhost")
-	assertHeader(t, req, "X-Method", "GET")
-	assertHeader(t, req, "X-Demo", "test")
+	return handler, err, recorder, req
 }
 
-func assertHeader(t *testing.T, req *http.Request, key, expected string) {
-	t.Helper()
+func assertQueryModification(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expected string, uriPath string) {
+	handler, err, recorder, req := createReqAndRecorder(cfg)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	req.URL.RawQuery = previous
+	req.URL.Path = uriPath
+	handler.ServeHTTP(recorder, req)
 
-	if req.Header.Get(key) != expected {
-		t.Errorf("invalid header value: %s", req.Header.Get(key))
+	if req.URL.Query().Encode() != expected {
+		t.Errorf("Expected %s, got %s", expected, req.URL.Query().Encode())
 	}
 }
