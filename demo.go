@@ -31,7 +31,7 @@ type QueryParameterRemover struct {
 	next                       http.Handler
 	name                       string
 	config                     *Config
-	exceptUriRegexCompiled     *regexp.Regexp
+	exceptURIRegexCompiled     *regexp.Regexp
 	allowedValuesRegexCompiled *regexp.Regexp
 }
 
@@ -67,7 +67,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		next:                       next,
 		name:                       name,
 		config:                     config,
-		exceptUriRegexCompiled:     exceptUriRegexCompiled,
+		exceptURIRegexCompiled:     exceptURIRegexCompiled,
 		allowedValuesRegexCompiled: allowedValuesRegexCompiled,
 	}, nil
 }
@@ -79,7 +79,7 @@ func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 	case deleteExceptType:
 
 		if q.config.ExceptUriRegex != "" {
-			regexAllowed := q.exceptUriRegexCompiled
+			regexAllowed := q.exceptURIRegexCompiled
 
 			isExceptMatch := regexAllowed.MatchString(req.URL.String())
 
