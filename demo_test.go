@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	traefikremovequeryparametersbyregex "github.com/Thijmen/traefik-remove-query-parameters-by-regex"
+	"github.com/Thijmen/traefik-remove-query-parameters-by-regex"
 )
 
 // region Delete
