@@ -1,10 +1,10 @@
-displayName: Demo Plugin
+displayName: Remove query parameters by regex
 type: middleware
 iconPath: .assets/icon.png
 
-import: github.com/traefik/plugindemo
+import: github.com/Thijmen/traefik-remove-query-parameters-by-regex
 
-summary: '[Demo] Add Request Header'
+summary: 'Allows usage of regex to remove query parameters to service'
 
 testData:
   Headers:
