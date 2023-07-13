@@ -1,4 +1,4 @@
-// Package traefik_remove_query_parameters_by_regex by Thijmen Stavenuiter.
+// Package traefikRemoveQueryParametersByRegex by Thijmen Stavenuiter.
 package traefikRemoveQueryParametersByRegex
 
 import (

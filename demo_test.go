@@ -1,4 +1,4 @@
-package traefikRemoveQueryParametersByRegexTest
+package traefikRemoveQueryParametersByRegex_test
 
 import (
 	"context"
