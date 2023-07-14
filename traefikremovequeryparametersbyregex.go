@@ -1,5 +1,5 @@
 // Package traefik_remove_query_parameters_by_regex by Thijmen Stavenuiter.
-// nolint: all
+//nolint: all
 package traefik_remove_query_parameters_by_regex
 
 import (
