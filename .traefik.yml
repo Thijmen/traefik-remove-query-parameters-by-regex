@@ -1,6 +1,5 @@
 displayName: Remove query parameters by regex
 type: middleware
-iconPath: .assets/icon.png
 
 import: github.com/Thijmen/traefik-remove-query-parameters-by-regex
 
