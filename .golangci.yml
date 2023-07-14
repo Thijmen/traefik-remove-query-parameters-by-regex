@@ -61,6 +61,7 @@ linters:
     - gomnd
     - forbidigo
     - varnamelen
+    - revive
 
 issues:
   exclude-use-default: false

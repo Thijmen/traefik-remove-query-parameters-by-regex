@@ -1,4 +1,4 @@
-package traefikremovequeryparametersbyregex_test
+package traefik_remove_query_parameters_by_regex_test
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 // region Delete
 func TestDeleteQueryParam(t *testing.T) {
-	cfg := traefikremovequeryparametersbyregex.CreateConfig()
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "deleteexcept"
 	cfg.AllowedValuesRegex = "(testing|debugging)"
 	expected := ""
@@ -21,7 +21,7 @@ func TestDeleteQueryParam(t *testing.T) {
 }
 
 func TestDeleteQueryParamAndAllowIsNotRemoved(t *testing.T) {
-	cfg := traefikremovequeryparametersbyregex.CreateConfig()
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "deleteexcept"
 	cfg.AllowedValuesRegex = "(testing|debugging)"
 	expected := "testing=1"
@@ -31,7 +31,7 @@ func TestDeleteQueryParamAndAllowIsNotRemoved(t *testing.T) {
 }
 
 func TestDeleteQueryParamDoesntWorkOnProperDomain(t *testing.T) {
-	cfg := traefikremovequeryparametersbyregex.CreateConfig()
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "deleteexcept"
 	cfg.AllowedValuesRegex = "(testing|debugging)"
 	cfg.ExceptURIRegex = "(qontrol)"
@@ -42,7 +42,7 @@ func TestDeleteQueryParamDoesntWorkOnProperDomain(t *testing.T) {
 }
 
 func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
-	cfg := traefikremovequeryparametersbyregex.CreateConfig()
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "deleteexcept"
 	cfg.AllowedValuesRegex = "(testing|debugging)"
 	cfg.ExceptURIRegex = "(qontrol)"
@@ -53,10 +53,11 @@ func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
 }
 
 func TestErrorInvalidType(t *testing.T) {
-	cfg := traefikremovequeryparametersbyregex.CreateConfig()
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "bla"
+	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	_, err := traefikremovequeryparametersbyregex.New(next, cfg, "query-params-remover-plugin")
+	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-params-remover-plugin")
 
 	if err == nil {
 		t.Error("expected error but err is nil")
@@ -64,20 +65,21 @@ func TestErrorInvalidType(t *testing.T) {
 }
 
 func TestErrorNoParam(t *testing.T) {
-	cfg := traefikremovequeryparametersbyregex.CreateConfig()
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "delete"
+	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	_, err := traefikremovequeryparametersbyregex.New(next, cfg, "query-modification-plugin")
+	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-modification-plugin")
 
 	if err == nil {
 		t.Error("expected error but err is nil")
 	}
 }
 
-func createReqAndRecorder(cfg *traefikremovequeryparametersbyregex.Config) (http.Handler, *httptest.ResponseRecorder, *http.Request, error) {
+func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) (http.Handler, *httptest.ResponseRecorder, *http.Request, error) {
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	handler, err := traefikremovequeryparametersbyregex.New(next, cfg, "query-modification-plugin")
+	handler, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-modification-plugin")
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -88,7 +90,7 @@ func createReqAndRecorder(cfg *traefikremovequeryparametersbyregex.Config) (http
 	return handler, recorder, req, err
 }
 
-func assertQueryModificationHelper(t *testing.T, cfg *traefikremovequeryparametersbyregex.Config, previous, expected, uriPath string) {
+func assertQueryModificationHelper(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expected, uriPath string) {
 	t.Helper()
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {

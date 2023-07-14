@@ -1,7 +1,9 @@
-// Package traefikremovequeryparametersbyregex by Thijmen Stavenuiter.
-package traefikremovequeryparametersbyregex
+// Package traefik_remove_query_parameters_by_regex by Thijmen Stavenuiter.
+// nolint: all
+package traefik_remove_query_parameters_by_regex
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -36,7 +38,7 @@ type QueryParameterRemover struct {
 }
 
 // New creates a new instance of this plugin.
-func New(next http.Handler, config *Config, name string) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	if !config.Type.isValid() {
 		return nil, errors.New("invalid modification type, expected deleteexcept")
 	}
