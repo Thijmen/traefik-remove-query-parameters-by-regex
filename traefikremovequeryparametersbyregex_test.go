@@ -52,6 +52,18 @@ func TestDeleteQueryParamDoesntWorkOnProperDomainWithLongerPath(t *testing.T) {
 	assertQueryModificationHelper(t, cfg, previous, expected, "/qontrol/test/1")
 }
 
+func TestDeleteQueryParamDoesNotWorkWithRegexWithADash(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "deleteexcept"
+	cfg.AllowedValuesRegex = "(testing|x-live-preview)"
+	cfg.ExceptURIRegex = "(qontrol)"
+	expected := "x-live-preview=1"
+	previous := "test=1&x-live-preview=1"
+
+
+	assertQueryModificationHelper(t, cfg, previous, expected, "")
+}
+
 func TestErrorInvalidType(t *testing.T) {
 	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "bla"
