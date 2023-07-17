@@ -64,6 +64,20 @@ func TestDeleteQueryParamDoesNotWorkWithRegexWithADash(t *testing.T) {
 	assertQueryModificationHelper(t, cfg, previous, expected, "")
 }
 
+func TestItSendsTheHeader(t *testing.T) {
+	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
+	cfg.Type = "deleteexcept"
+	cfg.AllowedValuesRegex = "(testing|x-live-preview)"
+	cfg.ExceptURIRegex = "(qontrol)"
+	cfg.AddOriginalHostnameHeader = true
+	headerValue := "http://localhost?test=1&x-live-preview=1"
+	previous := "test=1&x-live-preview=1"
+
+
+	assertHeaderValue(t, cfg, previous, headerValue)
+}
+
+
 func TestErrorInvalidType(t *testing.T) {
 	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "bla"
@@ -116,4 +130,23 @@ func assertQueryModificationHelper(t *testing.T, cfg *traefik_remove_query_param
 	if req.URL.Query().Encode() != expected {
 		t.Errorf("Expected %s, got %s", expected, req.URL.Query().Encode())
 	}
+}
+
+
+func assertHeaderValue(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expectedHeaderValue string) {
+	t.Helper()
+	handler, recorder, req, err := createReqAndRecorder(cfg)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	req.URL.RawQuery = previous
+	handler.ServeHTTP(recorder, req)
+
+	header := req.Header.Get("Plugin-Original-Uri")
+
+	if header != expectedHeaderValue {
+		t.Errorf("Expected %s, got %s", expectedHeaderValue, header)
+	}
+
 }

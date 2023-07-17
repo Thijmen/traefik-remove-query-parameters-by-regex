@@ -5,7 +5,6 @@ package traefik_remove_query_parameters_by_regex
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"regexp"
 )
@@ -18,9 +17,10 @@ const (
 
 // Config is the configuration for this plugin.
 type Config struct {
-	Type               modificationType `json:"type"`
-	AllowedValuesRegex string           `json:"allowedValuesRegex"`
-	ExceptURIRegex     string           `json:"exceptUriRegex"`
+Type               				modificationType `json:"type"`
+	AllowedValuesRegex 			string           `json:"allowedValuesRegex"`
+	ExceptURIRegex     			string           `json:"exceptUriRegex"`
+	AddOriginalHostnameHeader	bool			 `json:"addOriginalHostnameHeader"`
 }
 
 // CreateConfig creates a new configuration for this plugin.
@@ -77,6 +77,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	qry := req.URL.Query()
 
+	originalQuery := req.URL.String()
+
 	switch q.config.Type {
 	case deleteExceptType:
 
@@ -92,12 +94,18 @@ func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 
 		regex := regexp.MustCompile(q.config.AllowedValuesRegex)
 
+		addOriginalHeader := false
+
 		for param := range req.URL.Query() {
 			if !regex.MatchString(param) {
 				qry.Del(param)
 				req.URL.RawQuery = qry.Encode()
-				log.Printf("Removed parameter: %s \n", param)
+				addOriginalHeader = true
 			}
+		}
+
+		if q.config.AddOriginalHostnameHeader && addOriginalHeader {
+			req.Header.Add("Plugin-Original-Uri", originalQuery)
 		}
 	}
 
