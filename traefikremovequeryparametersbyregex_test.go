@@ -74,6 +74,7 @@ func TestItSendsTheHeader(t *testing.T) {
 
 	assertHeaderValue(t, cfg, previous, headerValue)
 }
+
 func TestErrorInvalidType(t *testing.T) {
 	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "bla"
