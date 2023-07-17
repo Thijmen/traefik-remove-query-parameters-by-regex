@@ -60,7 +60,6 @@ func TestDeleteQueryParamDoesNotWorkWithRegexWithADash(t *testing.T) {
 	expected := "x-live-preview=1"
 	previous := "test=1&x-live-preview=1"
 
-
 	assertQueryModificationHelper(t, cfg, previous, expected, "")
 }
 
@@ -73,11 +72,8 @@ func TestItSendsTheHeader(t *testing.T) {
 	headerValue := "http://localhost?test=1&x-live-preview=1"
 	previous := "test=1&x-live-preview=1"
 
-
 	assertHeaderValue(t, cfg, previous, headerValue)
 }
-
-
 func TestErrorInvalidType(t *testing.T) {
 	cfg := traefik_remove_query_parameters_by_regex.CreateConfig()
 	cfg.Type = "bla"
@@ -132,7 +128,6 @@ func assertQueryModificationHelper(t *testing.T, cfg *traefik_remove_query_param
 	}
 }
 
-
 func assertHeaderValue(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expectedHeaderValue string) {
 	t.Helper()
 	handler, recorder, req, err := createReqAndRecorder(cfg)
@@ -148,5 +143,4 @@ func assertHeaderValue(t *testing.T, cfg *traefik_remove_query_parameters_by_reg
 	if header != expectedHeaderValue {
 		t.Errorf("Expected %s, got %s", expectedHeaderValue, header)
 	}
-
 }
