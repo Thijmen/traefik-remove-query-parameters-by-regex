@@ -315,7 +315,6 @@ func TestRedirectWhileMaintainingQueryParameters(t *testing.T) {
 	expectedLocation := "http://localhost?x-some-other-token=this"
 	previous := "token=aaaAAxxx-BVS_A&x-some-other-token=this"
 	assertRedirectHelper(t, cfg, previous, expectedLocation, 301)
-
 }
 
 func assertRedirectHelper(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expectedLocation string, expectedStatus int) {
