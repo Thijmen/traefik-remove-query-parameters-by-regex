@@ -1,3 +1,3 @@
 module github.com/Thijmen/traefik-remove-query-parameters-by-regex
 
-go 1.19
+go 1.24.0

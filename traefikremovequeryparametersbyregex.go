@@ -1,5 +1,5 @@
 // Package traefik_remove_query_parameters_by_regex by Thijmen Stavenuiter.
-//nolint: all
+// nolint: all
 package traefik_remove_query_parameters_by_regex
 
 import (
@@ -15,12 +15,19 @@ const (
 	deleteExceptType modificationType = "deleteexcept"
 )
 
+// RedirectParam represents a query parameter and its redirect status code.
+type RedirectParam struct {
+	Param      string `json:"param"`
+	StatusCode int    `json:"statusCode"`
+}
+
 // Config is the configuration for this plugin.
 type Config struct {
-Type               				modificationType `json:"type"`
-	AllowedValuesRegex 			string           `json:"allowedValuesRegex"`
-	ExceptURIRegex     			string           `json:"exceptUriRegex"`
-	AddOriginalHostnameHeader	bool			 `json:"addOriginalHostnameHeader"`
+	Type                      modificationType `json:"type"`
+	AllowedValuesRegex        string           `json:"allowedValuesRegex"`
+	ExceptURIRegex            string           `json:"exceptUriRegex"`
+	AddOriginalHostnameHeader bool             `json:"addOriginalHostnameHeader"`
+	RedirectParams            []RedirectParam  `json:"redirectParams"`
 }
 
 // CreateConfig creates a new configuration for this plugin.
@@ -35,6 +42,7 @@ type QueryParameterRemover struct {
 	config                     *Config
 	exceptURIRegexCompiled     *regexp.Regexp
 	allowedValuesRegexCompiled *regexp.Regexp
+	redirectParamsMap          map[string]int
 }
 
 // New creates a new instance of this plugin.
@@ -43,8 +51,14 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		return nil, errors.New("invalid modification type, expected deleteexcept")
 	}
 
-	if config.AllowedValuesRegex == "" && config.ExceptURIRegex == "" {
-		return nil, errors.New("either AllowedValuesRegex or ExceptURIRegex must be set")
+	if config.AllowedValuesRegex == "" && config.ExceptURIRegex == "" && len(config.RedirectParams) == 0 {
+		return nil, errors.New("either AllowedValuesRegex, ExceptURIRegex, or RedirectParams must be set")
+	}
+
+	for _, redirectParam := range config.RedirectParams {
+		if redirectParam.StatusCode != 301 && redirectParam.StatusCode != 302 {
+			return nil, errors.New("redirectParam statusCode must be 301 or 302")
+		}
 	}
 
 	var exceptURIRegexCompiled *regexp.Regexp
@@ -65,12 +79,19 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		}
 	}
 
+	// Build map for redirect parameters with status codes for O(1) lookup
+	redirectParamsMap := make(map[string]int)
+	for _, redirectParam := range config.RedirectParams {
+		redirectParamsMap[redirectParam.Param] = redirectParam.StatusCode
+	}
+
 	return &QueryParameterRemover{
 		next:                       next,
 		name:                       name,
 		config:                     config,
 		exceptURIRegexCompiled:     exceptURIRegexCompiled,
 		allowedValuesRegexCompiled: allowedValuesRegexCompiled,
+		redirectParamsMap:          redirectParamsMap,
 	}, nil
 }
 
@@ -78,6 +99,20 @@ func (q *QueryParameterRemover) ServeHTTP(rw http.ResponseWriter, req *http.Requ
 	qry := req.URL.Query()
 
 	originalQuery := req.URL.String()
+
+	// Check for redirect parameters first
+	if len(q.redirectParamsMap) > 0 {
+		for param := range qry {
+			if statusCode, exists := q.redirectParamsMap[param]; exists {
+				// Remove the matching parameter and redirect
+				qry.Del(param)
+				req.URL.RawQuery = qry.Encode()
+				redirectURL := req.URL.String()
+				http.Redirect(rw, req, redirectURL, statusCode)
+				return
+			}
+		}
+	}
 
 	switch q.config.Type {
 	case deleteExceptType:
