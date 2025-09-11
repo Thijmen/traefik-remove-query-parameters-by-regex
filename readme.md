@@ -1,4 +1,4 @@
-# Info
+# Infos
 
 This middleware allows you to modify the query parameters to the service by removing some parameters by regex. You even can exclude some paths by regex too!
 
