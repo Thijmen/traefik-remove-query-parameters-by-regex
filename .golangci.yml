@@ -59,6 +59,7 @@ linters:
     - gochecknoglobals
     - gochecknoinits
     - wsl
+    - wsl_v5
     - goheader
     - testpackage
   settings:
@@ -145,6 +146,8 @@ linters:
             - Unsetenv
     govet:
       enable-all: true
+      disable:
+        - fieldalignment
     godot:
       scope: noinline
       period: true
@@ -340,6 +343,7 @@ linters:
     staticcheck:
       checks:
         - all
+        - -ST1003
   exclusions:
     generated: lax
     presets:

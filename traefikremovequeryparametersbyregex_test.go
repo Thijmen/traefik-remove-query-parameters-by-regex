@@ -2,6 +2,7 @@ package traefik_remove_query_parameters_by_regex_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -80,13 +81,13 @@ func TestErrorInvalidType(t *testing.T) {
 	cfg.Type = "bla"
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+
 	_, err := traefik_remove_query_parameters_by_regex.New(
 		ctx,
 		next,
 		cfg,
 		"query-params-remover-plugin",
 	)
-
 	if err == nil {
 		t.Error("expected error but err is nil")
 	}
@@ -97,13 +98,13 @@ func TestErrorNoParam(t *testing.T) {
 	cfg.Type = "delete"
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+
 	_, err := traefik_remove_query_parameters_by_regex.New(
 		ctx,
 		next,
 		cfg,
 		"query-modification-plugin",
 	)
-
 	if err == nil {
 		t.Error("expected error but err is nil")
 	}
@@ -114,6 +115,7 @@ func createReqAndRecorder(
 ) (http.Handler, *httptest.ResponseRecorder, *http.Request, error) {
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+
 	handler, err := traefik_remove_query_parameters_by_regex.New(
 		ctx,
 		next,
@@ -121,13 +123,17 @@ func createReqAndRecorder(
 		"query-modification-plugin",
 	)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, fmt.Errorf("failed to create handler: %w", err)
 	}
 
 	recorder := httptest.NewRecorder()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", nil)
-	return handler, recorder, req, err
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost", http.NoBody)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	return handler, recorder, req, nil
 }
 
 func assertQueryModificationHelper(
@@ -136,11 +142,14 @@ func assertQueryModificationHelper(
 	previous, expected, uriPath string,
 ) {
 	t.Helper()
+
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
 		t.Fatal(err)
+
 		return
 	}
+
 	req.URL.RawQuery = previous
 	req.URL.Path = uriPath
 	handler.ServeHTTP(recorder, req)
@@ -156,11 +165,14 @@ func assertHeaderValue(
 	previous, expectedHeaderValue string,
 ) {
 	t.Helper()
+
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
 		t.Fatal(err)
+
 		return
 	}
+
 	req.URL.RawQuery = previous
 	handler.ServeHTTP(recorder, req)
 
@@ -230,8 +242,10 @@ func TestNoRedirectWhenNoMatchingParams(t *testing.T) {
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
 		t.Fatal(err)
+
 		return
 	}
+
 	req.URL.RawQuery = previous
 	handler.ServeHTTP(recorder, req)
 
@@ -292,7 +306,6 @@ func TestErrorInvalidRedirectStatusCode404(t *testing.T) {
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "redirect-plugin")
-
 	if err == nil {
 		t.Error("expected error but err is nil")
 	}
@@ -351,6 +364,7 @@ func assertRedirectHelper(
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
 		t.Fatal(err)
+
 		return
 	}
 	req.URL.RawQuery = previous
