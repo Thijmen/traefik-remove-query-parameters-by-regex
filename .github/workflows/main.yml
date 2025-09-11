@@ -22,11 +22,11 @@ jobs:
 
     steps:
       # https://github.com/marketplace/actions/checkout
-      - name: Check out code
-        uses: actions/checkout@v2
+      - name: Check Out The Repo
+        uses: actions/checkout@v5.0.0
         with:
-          path: go/src/github.com/${{ github.repository }}
           fetch-depth: 0
+
 
       - name: Set up Go
         uses: actions/setup-go@v6.0.0
