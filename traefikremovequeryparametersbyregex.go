@@ -1,5 +1,4 @@
 // Package traefik_remove_query_parameters_by_regex by Thijmen Stavenuiter.
-// nolint: all
 package traefik_remove_query_parameters_by_regex
 
 import (
@@ -46,13 +45,21 @@ type QueryParameterRemover struct {
 }
 
 // New creates a new instance of this plugin.
-func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
+func New(
+	ctx context.Context,
+	next http.Handler,
+	config *Config,
+	name string,
+) (http.Handler, error) {
 	if !config.Type.isValid() {
 		return nil, errors.New("invalid modification type, expected deleteexcept")
 	}
 
-	if config.AllowedValuesRegex == "" && config.ExceptURIRegex == "" && len(config.RedirectParams) == 0 {
-		return nil, errors.New("either AllowedValuesRegex, ExceptURIRegex, or RedirectParams must be set")
+	if config.AllowedValuesRegex == "" && config.ExceptURIRegex == "" &&
+		len(config.RedirectParams) == 0 {
+		return nil, errors.New(
+			"either AllowedValuesRegex, ExceptURIRegex, or RedirectParams must be set",
+		)
 	}
 
 	for _, redirectParam := range config.RedirectParams {

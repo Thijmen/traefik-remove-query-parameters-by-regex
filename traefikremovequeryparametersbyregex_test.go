@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Thijmen/traefik-remove-query-parameters-by-regex"
+	traefik_remove_query_parameters_by_regex "github.com/Thijmen/traefik-remove-query-parameters-by-regex"
 )
 
 // region Delete
@@ -80,7 +80,12 @@ func TestErrorInvalidType(t *testing.T) {
 	cfg.Type = "bla"
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-params-remover-plugin")
+	_, err := traefik_remove_query_parameters_by_regex.New(
+		ctx,
+		next,
+		cfg,
+		"query-params-remover-plugin",
+	)
 
 	if err == nil {
 		t.Error("expected error but err is nil")
@@ -92,17 +97,29 @@ func TestErrorNoParam(t *testing.T) {
 	cfg.Type = "delete"
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-modification-plugin")
+	_, err := traefik_remove_query_parameters_by_regex.New(
+		ctx,
+		next,
+		cfg,
+		"query-modification-plugin",
+	)
 
 	if err == nil {
 		t.Error("expected error but err is nil")
 	}
 }
 
-func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) (http.Handler, *httptest.ResponseRecorder, *http.Request, error) {
+func createReqAndRecorder(
+	cfg *traefik_remove_query_parameters_by_regex.Config,
+) (http.Handler, *httptest.ResponseRecorder, *http.Request, error) {
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
-	handler, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "query-modification-plugin")
+	handler, err := traefik_remove_query_parameters_by_regex.New(
+		ctx,
+		next,
+		cfg,
+		"query-modification-plugin",
+	)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -113,7 +130,11 @@ func createReqAndRecorder(cfg *traefik_remove_query_parameters_by_regex.Config) 
 	return handler, recorder, req, err
 }
 
-func assertQueryModificationHelper(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expected, uriPath string) {
+func assertQueryModificationHelper(
+	t *testing.T,
+	cfg *traefik_remove_query_parameters_by_regex.Config,
+	previous, expected, uriPath string,
+) {
 	t.Helper()
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
@@ -129,7 +150,11 @@ func assertQueryModificationHelper(t *testing.T, cfg *traefik_remove_query_param
 	}
 }
 
-func assertHeaderValue(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expectedHeaderValue string) {
+func assertHeaderValue(
+	t *testing.T,
+	cfg *traefik_remove_query_parameters_by_regex.Config,
+	previous, expectedHeaderValue string,
+) {
 	t.Helper()
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
@@ -281,7 +306,6 @@ func TestRedirectOnlyConfigurationIsValid(t *testing.T) {
 	ctx := context.Background()
 	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
 	_, err := traefik_remove_query_parameters_by_regex.New(ctx, next, cfg, "redirect-plugin")
-
 	if err != nil {
 		t.Errorf("expected no error but got: %v", err)
 	}
@@ -317,7 +341,12 @@ func TestRedirectWhileMaintainingQueryParameters(t *testing.T) {
 	assertRedirectHelper(t, cfg, previous, expectedLocation, 301)
 }
 
-func assertRedirectHelper(t *testing.T, cfg *traefik_remove_query_parameters_by_regex.Config, previous, expectedLocation string, expectedStatus int) {
+func assertRedirectHelper(
+	t *testing.T,
+	cfg *traefik_remove_query_parameters_by_regex.Config,
+	previous, expectedLocation string,
+	expectedStatus int,
+) {
 	t.Helper()
 	handler, recorder, req, err := createReqAndRecorder(cfg)
 	if err != nil {
