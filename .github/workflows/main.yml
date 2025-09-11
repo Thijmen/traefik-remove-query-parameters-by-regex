@@ -16,9 +16,6 @@ jobs:
       GOLANGCI_LINT_VERSION: v1.58.1
       YAEGI_VERSION: v0.9.0
       CGO_ENABLED: 0
-    defaults:
-      run:
-        working-directory: ${{ github.workspace }}/go/src/github.com/${{ github.repository }}
 
     steps:
       # https://github.com/marketplace/actions/checkout
