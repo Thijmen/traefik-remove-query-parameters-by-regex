@@ -35,16 +35,6 @@ jobs:
           path: go/src/github.com/${{ github.repository }}
           fetch-depth: 0
 
-      # https://github.com/marketplace/actions/cache
-      - name: Cache Go modules
-        uses: actions/cache@v3
-        with:
-          path: ${{ github.workspace }}/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8.0.0
 
